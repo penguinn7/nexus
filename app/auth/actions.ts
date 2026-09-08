@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 export interface AuthResult {
@@ -55,7 +56,16 @@ export async function signupAction(formData: FormData): Promise<AuthResult> {
   if (passErr) return { error: passErr };
 
   const isLocal = process.env.NODE_ENV === "development";
-  const origin = isLocal ? "http://localhost:3000" : process.env.NEXTAUTH_URL ?? "";
+  const requestedHost =
+    (await headers()).get("x-forwarded-host") ??
+    (await headers()).get("host");
+  const origin =
+    process.env.NEXTAUTH_URL ??
+    (isLocal
+      ? "http://localhost:3000"
+      : requestedHost
+        ? `https://${requestedHost}`
+        : "");
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
