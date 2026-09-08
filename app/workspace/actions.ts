@@ -54,6 +54,40 @@ export async function createSpace(input: {
   return { space: data };
 }
 
+export async function updateSpace(
+  spaceId: string,
+  input: { name: string; type: SpaceType; description: string; theme: string }
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." };
+
+  const name = input.name.trim();
+  if (!name) return { error: "Give your Space a name." };
+  if (name.length > 100) return { error: "Name too long (max 100 characters)." };
+
+  const type = VALID_TYPES.includes(input.type) ? input.type : "custom";
+  const theme = isThemeKey(input.theme) ? input.theme : "y2k";
+  const description = (input.description ?? "").trim().slice(0, 500);
+
+  const { error } = await supabase
+    .from("spaces")
+    .update({ name, type, description, theme })
+    .eq("id", spaceId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("updateSpace", error);
+    return { error: "Could not update the Space." };
+  }
+
+  revalidatePath(`/space/${spaceId}`);
+  revalidatePath("/workspace");
+  return { ok: true };
+}
+
 export async function updateSpaceTheme(spaceId: string, theme: string) {
   const supabase = await createClient();
   const {

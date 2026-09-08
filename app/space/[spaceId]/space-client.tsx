@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Pencil } from "lucide-react";
 import { Y2KBackground } from "@/components/nexus/y2k-background";
 import { NexusLogo } from "@/components/nexus/ui";
 import { CommandPalette } from "@/components/nexus/command-palette";
 import { ThemeSwitcher } from "@/components/nexus/theme-switcher";
+import { EditSpaceModal } from "@/components/nexus/edit-space-modal";
 import { getTheme } from "@/lib/themes";
 import { cn, timeAgo } from "@/lib/utils";
 import type {
@@ -68,6 +70,7 @@ export function SpaceClient({
   );
   const [addSourceOpen, setAddSourceOpen] = useState(false);
   const [addNoteOpen, setAddNoteOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     null
@@ -133,9 +136,20 @@ export function SpaceClient({
         </div>
 
         <div className="px-5">
-          <p className="font-display text-[10px] uppercase tracking-[0.2em] text-(--muted-foreground)">
-            Space
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-display text-[10px] uppercase tracking-[0.2em] text-(--muted-foreground)">
+              Space
+            </p>
+            <button
+              type="button"
+              onClick={() => setEditOpen(true)}
+              aria-label="Edit Space"
+              title="Edit Space"
+              className="rounded-md p-1 text-(--muted-foreground) transition-colors hover:bg-(--card) hover:text-(--foreground) cursor-pointer"
+            >
+              <Pencil size={13} />
+            </button>
+          </div>
           <p className="mt-1 truncate text-sm font-semibold text-(--foreground)">
             {space.name}
           </p>
@@ -249,6 +263,12 @@ export function SpaceClient({
           onClose={() => setAddNoteOpen(false)}
         />
       )}
+
+      <EditSpaceModal
+        space={space}
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+      />
 
       <CommandPalette
         open={commandOpen}
