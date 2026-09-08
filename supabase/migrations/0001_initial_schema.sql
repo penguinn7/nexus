@@ -114,6 +114,13 @@ create table if not exists public.sources (
   created_at timestamptz not null default now()
 );
 
+-- Recover from a pre-existing/older `sources` table that is missing columns.
+alter table public.sources add column if not exists source_type text not null default 'text';
+alter table public.sources add column if not exists url text;
+alter table public.sources add column if not exists status text not null default 'uploading';
+alter table public.sources add column if not exists error text;
+alter table public.sources add column if not exists created_at timestamptz not null default now();
+
 create index if not exists sources_space_id_idx on public.sources (space_id);
 create index if not exists sources_user_id_idx on public.sources (user_id);
 create index if not exists sources_status_idx on public.sources (status);
