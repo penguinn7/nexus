@@ -3,7 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { retrieveForQuestion, buildContext } from "@/lib/ai/retrieval";
 import { resolveAIProvider } from "@/lib/ai/provider";
 import { extractConcepts } from "@/lib/ai/pipeline";
+import { webSearch, buildWebContext, webResearchEnabled } from "@/lib/ai/search";
 import type { AiMode, RetrievalContext, ChunkRef, SourceRef, ConceptRef } from "@/types";
+import type { WebResult } from "@/lib/ai/search";
 
 const VALID_MODES: AiMode[] = [
   "quick",
@@ -102,15 +104,22 @@ export async function POST(request: Request) {
   }
 
   // ── Retrieve context ──
-  const retrieval = await retrieveForQuestion({
-    spaceId,
-    userId: user.id,
-    question,
-    limit: 8,
-  });
+  const [retrieval, webResults] = await Promise.all([
+    retrieveForQuestion({
+      spaceId,
+      userId: user.id,
+      question,
+      limit: 8,
+    }),
+    // NEXUS "does its own research": supplement with live web when enabled
+    webResearchEnabled()
+      ? webSearch(question, { maxResults: 4 }).catch(() => [])
+      : Promise.resolve([]),
+  ]);
 
+  const webBlock = buildWebContext(webResults);
   const encodedContext = JSON.stringify(toContext(retrieval));
-  const contextBlock = buildContext(retrieval);
+  const contextBlock = [buildContext(retrieval), webBlock].filter(Boolean).join("\n\n");
 
   // ── Generate (streamed if a provider exists; otherwise retrieval-only) ──
   const provider = resolveAIProvider();
@@ -137,10 +146,16 @@ export async function POST(request: Request) {
       };
 
       try {
-        push({ type: "meta", conversationId: convId, mode, provider: provider?.name ?? null });
+        push({
+          type: "meta",
+          conversationId: convId,
+          mode,
+          provider: provider?.name ?? null,
+          web: webResearchEnabled(),
+        });
 
         if (!provider) {
-          const answer = buildRetrievalOnlyAnswer(question, retrieval.chunks);
+          const answer = buildRetrievalOnlyAnswer(question, retrieval.chunks, webResults);
           full = answer;
           push({ type: "delta", content: answer });
           push({ type: "done" });
@@ -224,23 +239,40 @@ function toContext(r: Awaited<ReturnType<typeof retrieveForQuestion>>): Retrieva
   };
 }
 
-function buildRetrievalOnlyAnswer(question: string, chunks: ChunkRef[]): string {
-  if (chunks.length === 0) {
+function buildRetrievalOnlyAnswer(
+  question: string,
+  chunks: ChunkRef[],
+  webResults: WebResult[] = []
+): string {
+  if (chunks.length === 0 && webResults.length === 0) {
     return (
       "I couldn't find relevant passages in this Space to ground an answer. " +
-      "Add sources with the content you want me to reason over, or set an AI provider (AI_API_KEY) in your environment for full reasoning."
+      "Add sources with the content you want me to reason over, or set an AI provider (GEMINI_API_KEY) in your environment for full reasoning."
     );
   }
-  const top = chunks.slice(0, 3);
-  const lines = top.map((c, i) => `${i + 1}. ${c.content.trim().slice(0, 420)}`);
-  const cites = Array.from(new Set(top.map((c) => c.sourceTitle)))
-    .map((t) => `[Source: ${t}]`)
-    .join(" ");
+
+  const parts: string[] = [];
+  if (chunks.length > 0) {
+    const top = chunks.slice(0, 3);
+    const lines = top.map((c, i) => `${i + 1}. ${c.content.trim().slice(0, 420)}`);
+    const cites = Array.from(new Set(top.map((c) => c.sourceTitle)))
+      .map((t) => `[Source: ${t}]`)
+      .join(" ");
+    parts.push(
+      `Based on your sources, here are the passages most relevant to "${question}":\n\n${lines.join("\n\n")}\n\n${cites}`
+    );
+  }
+
+  if (webResults.length > 0) {
+    const lines = webResults.map(
+      (w, i) => `${i + 1}. [${w.title}](${w.url})\n   ${w.content.replace(/\s+/g, " ")}`
+    );
+    parts.push(`Live web research on "${question}":\n\n${lines.join("\n\n")}`);
+  }
+
   return (
-    `Based on your sources, here are the passages most relevant to "${question}":\n\n` +
-    lines.join("\n\n") +
-    `\n\n${cites}\n\n` +
-    `Add an AI provider (AI_API_KEY) to enable full reasoning and synthesis across these passages.`
+    parts.join("\n\n") +
+    "\n\nAdd an AI provider (GEMINI_API_KEY) to enable full reasoning and synthesis across these passages."
   );
 }
 

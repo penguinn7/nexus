@@ -53,7 +53,7 @@ export function modeSystemPrompt(mode: AiMode): string {
       "MODE: CREATIVE. Brainstorm. Generate alternative framings and unconventional connections, while staying grounded in the user's material.",
   };
 
-  return `${base}\n${modeAdditions[mode]}\n\nFormat guidelines:\n- Use short paragraphs and terse bullet lists where helpful.\n- Cite user sources inline like [Source: Title]. Only cite sources provided in context.\n- At the end, if useful, add a 'Explore next' question.\n- Never invent sources. If context provides none, rely on general knowledge and say so.`;
+  return `${base}\n${modeAdditions[mode]}\n\nFormat guidelines:\n- Use short paragraphs and terse bullet lists where helpful.\n- Cite user sources inline like [Source: Title]. Only cite sources provided in context.\n- If the context includes a '## Live web research' section, use it to answer current or external questions and cite it inline like [Web: Title]. Only cite web sources provided in that section — never invent URLs.\n- At the end, if useful, add a 'Explore next' question.\n- Never invent sources. If context provides none, rely on general knowledge and say so.`;
 }
 
 /**
@@ -73,6 +73,16 @@ export function resolveAIProvider(): AIProvider | null {
     return new AnthropicProvider({
       apiKey: process.env.ANTHROPIC_API_KEY,
       model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514",
+    });
+  }
+  // Google Gemini — free tier via its OpenAI-compatible endpoint.
+  if (process.env.GEMINI_API_KEY) {
+    return new OpenAICompatibleProvider({
+      apiKey: process.env.GEMINI_API_KEY,
+      baseUrl:
+        process.env.GEMINI_BASE_URL ??
+        "https://generativelanguage.googleapis.com/v1beta/openai",
+      model: process.env.GEMINI_MODEL ?? "gemini-2.0-flash",
     });
   }
   return null;
