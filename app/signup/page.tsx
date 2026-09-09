@@ -9,6 +9,9 @@ import { Y2KBackground } from "@/components/nexus/y2k-background";
 export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [resendMsg, setResendMsg] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [lastEmail, setLastEmail] = useState<string>("");
 
   async function handleSubmit(fd: FormData) {
     const res = await signupAction(fd);
@@ -17,7 +20,31 @@ export default function SignupPage() {
       return;
     }
     if (res.needsVerification) {
+      setLastEmail((fd.get("email") as string) ?? "");
       setSent(true);
+    }
+  }
+
+  async function handleResend() {
+    if (!lastEmail) return;
+    setResending(true);
+    setResendMsg(null);
+    try {
+      const res = await fetch("/api/auth/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: lastEmail }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setResendMsg("Re-sent! Check your inbox (and spam folder).");
+      } else {
+        setResendMsg(data.error ?? "Could not resend right now — try again soon.");
+      }
+    } catch {
+      setResendMsg("Network error — try again.");
+    } finally {
+      setResending(false);
     }
   }
 
@@ -44,9 +71,22 @@ export default function SignupPage() {
                 Check your inbox
               </h1>
               <p className="mt-2 text-sm text-(--muted-foreground)">
-                We sent you a verification link. Click it to activate your
-                account, then sign in to begin.
+                We sent a verification link to <span className="text-(--foreground)">{lastEmail}</span>.
+                Click it to activate your account, then sign in. If you don't see it, check your spam folder.
               </p>
+
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className="mt-4 w-full rounded-xl border border-(--primary)/30 bg-(--primary)/10 px-4 py-2.5 text-sm font-medium text-(--primary) transition-all hover:bg-(--primary)/20 disabled:opacity-40 cursor-pointer"
+              >
+                {resending ? "Sending…" : "Resend verification email"}
+              </button>
+              {resendMsg && (
+                <p className="mt-3 text-xs text-(--muted-foreground)">{resendMsg}</p>
+              )}
+
               <Link href="/login" className="mt-4 inline-block">
                 <NexusButton variant="outline">Go to sign in</NexusButton>
               </Link>

@@ -3,14 +3,16 @@ import { createClient } from "@/lib/supabase/server";
 import {
   extractPdfText,
   extractUrlText,
+  extractYoutubeText,
   processText,
   embedChunks,
+  isTextFile,
   ALLOWED_MIME,
   MAX_FILE_BYTES,
 } from "@/lib/ingest/processor";
 import { extractConcepts } from "@/lib/ai/pipeline";
 
-type SourceType = "pdf" | "text" | "url";
+type SourceType = "pdf" | "text" | "url" | "youtube";
 
 export const runtime = "nodejs";
 
@@ -36,7 +38,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing space." }, { status: 400 });
   }
   const kind = form.get("kind")?.toString() as SourceType | undefined;
-  if (kind !== "pdf" && kind !== "text" && kind !== "url") {
+  if (kind !== "pdf" && kind !== "text" && kind !== "url" && kind !== "youtube") {
     return NextResponse.json({ error: "Unsupported source type." }, { status: 400 });
   }
 
@@ -52,6 +54,9 @@ export async function POST(request: Request) {
   }
 
   try {
+    if (kind === "youtube") {
+      return await addYoutubeSource(supabase, { spaceId, userId: user.id, form });
+    }
     if (kind === "url") {
       return await addUrlSource(supabase, { spaceId, userId: user.id, form });
     }
@@ -124,6 +129,84 @@ async function addUrlSource(
   return NextResponse.json({ ok: true, source });
 }
 
+async function addYoutubeSource(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  { spaceId, userId, form }: { spaceId: string; userId: string; form: FormData }
+) {
+  let url = form.get("url")?.toString()?.trim() ?? "";
+  if (!url) {
+    const link = form.get("link")?.toString()?.trim();
+    if (link) url = link;
+  }
+  if (!url) return NextResponse.json({ error: "Paste a YouTube link." }, { status: 400 });
+
+  const isYouTube =
+    /youtube\.com\/watch|youtube\.com\/shorts|youtu\.be\//i.test(url);
+  if (!isYouTube) {
+    return NextResponse.json(
+      { error: "That doesn't look like a YouTube link." },
+      { status: 400 }
+    );
+  }
+  if (!/^https?:\/\//i.test(url)) {
+    url = `https://${url}`;
+  }
+
+  const { data: source, error: srcErr } = await supabase
+    .from("sources")
+    .insert({
+      space_id: spaceId,
+      user_id: userId,
+      title: url.length > 80 ? url.slice(0, 77) + "..." : url,
+      source_type: "youtube",
+      url,
+      status: "processing",
+    })
+    .select("id, title")
+    .single();
+  if (srcErr || !source) {
+    console.error("youtube source insert", srcErr);
+    return NextResponse.json({ error: "Could not create source." }, { status: 500 });
+  }
+
+  await supabase
+    .from("sources")
+    .update({ status: "indexing" })
+    .eq("id", source.id);
+
+  let text = "";
+  let title = "YouTube video";
+  try {
+    const extracted = await extractYoutubeText(url);
+    title = extracted.title;
+    text = extracted.text;
+  } catch (e) {
+    console.warn("youtube extraction failed, keeping link-only source", e);
+    text = `YouTube video\nURL: ${url}\n(Full transcript retrieval was blocked by YouTube for this video.)`;
+  }
+
+  await supabase
+    .from("sources")
+    .update({ title: title.slice(0, 140) })
+    .eq("id", source.id);
+
+  const { normalizedText, chunks } = processText(text);
+  await ingestDocument(supabase, {
+    sourceId: source.id,
+    spaceId,
+    userId,
+    filePath: url,
+    content: normalizedText,
+    chunks,
+  });
+
+  void extractConcepts({ text: normalizedText.slice(0, 12000), spaceId, userId }).catch((e) =>
+    console.error("youtube concept extraction", e)
+  );
+
+  return NextResponse.json({ ok: true, source });
+}
+
 async function addFileSource(
   supabase: Awaited<ReturnType<typeof createClient>>,
   {
@@ -175,7 +258,7 @@ async function addFileSource(
     return NextResponse.json({ ok: true, source });
   }
 
-  // PDF upload
+  // File upload: PDF or plain text (txt/md/csv)
   const file = form.get("file") as File | null;
   if (!file || !(file instanceof File)) {
     return NextResponse.json({ error: "No file provided." }, { status: 400 });
@@ -189,12 +272,27 @@ async function addFileSource(
   const mapped = ALLOWED_MIME.get(declaredMime);
   const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
 
-  // MIME-type and extension validation — never trust the client blindly.
+  // Text files (txt/md/csv) are read inline and stored as text sources.
+  const looksText = mapped === "text" || isTextFile(file.name);
   const looksPdf = declaredMime === "application/pdf" || extension === "pdf";
-  if (!looksPdf) {
-    return NextResponse.json({ error: "Only PDF files are supported for upload." }, { status: 400 });
+
+  if (looksPdf) {
+    return await runPdfUpload(supabase, { spaceId, userId, file });
+  }
+  if (looksText) {
+    return await runTextFileUpload(supabase, { spaceId, userId, file });
   }
 
+  return NextResponse.json(
+    { error: "Unsupported file type — upload a PDF, TXT, MD or CSV file." },
+    { status: 400 }
+  );
+}
+
+async function runPdfUpload(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  { spaceId, userId, file }: { spaceId: string; userId: string; file: File }
+) {
   const bytes = await file.arrayBuffer();
   const text = await extractPdfText(bytes);
 
@@ -247,6 +345,52 @@ async function addFileSource(
 
   void extractConcepts({ text: normalizedText.slice(0, 12000), spaceId, userId }).catch((e) =>
     console.error("pdf concept extraction", e)
+  );
+
+  return NextResponse.json({ ok: true, source });
+}
+
+async function runTextFileUpload(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  { spaceId, userId, file }: { spaceId: string; userId: string; file: File }
+) {
+  const text = await file.text();
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120);
+  const title = file.name.replace(/\.[^.]+$/, "").slice(0, 140) || safeName;
+
+  const { data: source, error: srcErr } = await supabase
+    .from("sources")
+    .insert({
+      space_id: spaceId,
+      user_id: userId,
+      title,
+      source_type: "text",
+      status: "processing",
+    })
+    .select("id, title")
+    .single();
+  if (srcErr || !source) {
+    console.error("text source insert", srcErr);
+    return NextResponse.json({ error: "Could not create source." }, { status: 500 });
+  }
+
+  await supabase
+    .from("sources")
+    .update({ status: "indexing" })
+    .eq("id", source.id);
+
+  const { normalizedText, chunks } = processText(text);
+  await ingestDocument(supabase, {
+    sourceId: source.id,
+    spaceId,
+    userId,
+    filePath: `upload:${safeName}`,
+    content: normalizedText,
+    chunks,
+  });
+
+  void extractConcepts({ text: normalizedText.slice(0, 12000), spaceId, userId }).catch((e) =>
+    console.error("text concept extraction", e)
   );
 
   return NextResponse.json({ ok: true, source });

@@ -8,7 +8,7 @@ export default async function SpacePage({
   searchParams,
 }: {
   params: Promise<{ spaceId: string }>;
-  searchParams: Promise<{ tab?: string; q?: string; add?: string }>;
+  searchParams: Promise<{ tab?: string; q?: string; add?: string; mode?: string }>;
 }) {
   const { spaceId } = await params;
   const sp = await searchParams;
@@ -76,6 +76,12 @@ export default async function SpacePage({
       ? sp.tab
       : "overview";
 
+  const initialMode =
+    sp.mode === "quick" || sp.mode === "deep" || sp.mode === "research" ||
+    sp.mode === "teach" || sp.mode === "executive" || sp.mode === "creative"
+      ? sp.mode
+      : "quick";
+
   return (
     <SpaceClient
       space={space as Space}
@@ -86,6 +92,7 @@ export default async function SpacePage({
       connections={(connectionsRes.data ?? []) as Connection[]}
       initialTab={initialTab}
       initialQuery={sp.q ?? null}
+      initialMode={initialMode}
       initialAdd={sp.add ?? null}
     />
   );

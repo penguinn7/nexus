@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Pencil } from "lucide-react";
+import { Pencil, Plus, Sparkles } from "lucide-react";
 import { Y2KBackground } from "@/components/nexus/y2k-background";
 import { NexusLogo } from "@/components/nexus/ui";
 import { CommandPalette } from "@/components/nexus/command-palette";
@@ -16,6 +16,7 @@ import type {
   Conversation,
   Concept,
   Connection,
+  AiMode,
 } from "@/types";
 import { OverviewTab } from "./space/overview-tab";
 import { SourcesTab } from "./space/sources-tab";
@@ -63,21 +64,87 @@ export function SpaceClient({
   connections: Connection[];
   initialTab: string;
   initialQuery: string | null;
+  initialMode?: string;
   initialAdd: string | null;
 }) {
   const [activeTab, setActiveTab] = useState<SpaceTab>(
     (initialTab as SpaceTab) ?? "overview"
   );
+  const [panelMode, setPanelMode] = useState<AiMode | null>(
+    (initialMode as AiMode) ?? null
+  );
   const [addSourceOpen, setAddSourceOpen] = useState(false);
+  const [addSourceProps, setAddSourceProps] = useState<{
+    initialKind?: "pdf" | "text" | "url" | "youtube";
+    initialFile?: File | null;
+    initialUrl?: string | null;
+  } | null>(null);
   const [addNoteOpen, setAddNoteOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     null
   );
   const [panelPrompt, setPanelPrompt] = useState<string | null>(initialQuery);
 
   const theme = getTheme(space.theme);
+
+  function openAddSource(props?: { initialKind?: "pdf" | "text" | "url" | "youtube"; initialFile?: File | null; initialUrl?: string | null }) {
+    setAddSourceProps(props ?? null);
+    setAddSourceOpen(true);
+  }
+
+  // Global drag & drop: drop any file from anywhere to add it to this Space
+  useEffect(() => {
+    let depth = 0;
+    let activeTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function hasFiles(e: DragEvent) {
+      return Array.from(e.dataTransfer?.types ?? []).includes("Files");
+    }
+
+    function onDragOver(e: DragEvent) {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      if (activeTimer) clearTimeout(activeTimer);
+      setDragActive(true);
+    }
+    function onDragEnter(e: DragEvent) {
+      if (!hasFiles(e)) return;
+      depth += 1;
+      if (activeTimer) clearTimeout(activeTimer);
+      setDragActive(true);
+    }
+    function onDragLeave(e: DragEvent) {
+      if (!hasFiles(e)) return;
+      depth -= 1;
+      if (depth <= 0) {
+        depth = 0;
+        activeTimer = setTimeout(() => setDragActive(false), 120);
+      }
+    }
+    function onDrop(e: DragEvent) {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      depth = 0;
+      if (activeTimer) clearTimeout(activeTimer);
+      setDragActive(false);
+      const file = e.dataTransfer?.files?.[0];
+      if (file) openAddSource({ initialFile: file });
+    }
+
+    document.addEventListener("dragover", onDragOver);
+    document.addEventListener("dragenter", onDragEnter);
+    document.addEventListener("dragleave", onDragLeave);
+    document.addEventListener("drop", onDrop);
+    return () => {
+      document.removeEventListener("dragover", onDragOver);
+      document.removeEventListener("dragenter", onDragEnter);
+      document.removeEventListener("dragleave", onDragLeave);
+      document.removeEventListener("drop", onDrop);
+    };
+  }, []);
 
   // Apply the Space's atmosphere while inside it
   useEffect(() => {
@@ -247,13 +314,42 @@ export function SpaceClient({
       <IntelligencePanel
         space={space}
         probePrompt={panelPrompt}
+        initialMode={panelMode}
         onPromptConsumed={() => setPanelPrompt(null)}
       />
+
+      {/* ── Universal "Add from anywhere" corner widget ─── */}
+      <button
+        type="button"
+        onClick={() => openAddSource()}
+        className="fixed bottom-6 left-6 z-40 flex items-center gap-2 rounded-full bg-gradient-to-br from-(--glow-violet) to-(--glow-blue) px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_30px_hsl(var(--glow-violet)/0.35)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+      >
+        <Plus size={16} strokeWidth={2.5} />
+        Add anything
+      </button>
+
+      {/* Drag-anywhere drop target */}
+      {dragActive && (
+        <div className="pointer-events-none fixed inset-0 z-[45] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="rounded-2xl border-2 border-dashed border-(--primary)/60 bg-(--primary)/10 px-10 py-8 text-center animate-scale-in">
+            <Sparkles size={28} className="mx-auto text-(--primary)" />
+            <p className="mt-3 font-display text-lg text-(--foreground)">
+              Drop to add to <span className="text-(--primary)">{space.name}</span>
+            </p>
+            <p className="mt-1 text-xs text-(--muted-foreground)">
+              PDF · TXT · MD · CSV · up to 10 MB
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       {addSourceOpen && (
         <AddSourceOverlay
           spaceId={space.id}
+          initialKind={addSourceProps?.initialKind}
+          initialFile={addSourceProps?.initialFile}
+          initialUrl={addSourceProps?.initialUrl}
           onClose={() => setAddSourceOpen(false)}
         />
       )}

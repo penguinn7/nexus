@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Sparkles, X } from "lucide-react";
-import type { Space, AiMessage } from "@/types";
+import type { Space, AiMessage, AiMode } from "@/types";
 import { ChatView } from "./chat-view";
 import { cn } from "@/lib/utils";
 
@@ -13,10 +13,12 @@ import { cn } from "@/lib/utils";
 export function IntelligencePanel({
   space,
   probePrompt,
+  initialMode,
   onPromptConsumed,
 }: {
   space: Space;
   probePrompt?: string | null;
+  initialMode?: AiMode | null;
   onPromptConsumed?: () => void;
 }) {
   const [open, setOpen] = useState(true);
@@ -70,6 +72,7 @@ export function IntelligencePanel({
             spaceId={space.id}
             conversationId={liveConversationId}
             initialMessages={initialMessages}
+            initialMode={initialMode ?? null}
             probePrompt={probePrompt}
             onPromptConsumed={onPromptConsumed}
             onConversationCreated={(id) => setLiveConversationId(id)}

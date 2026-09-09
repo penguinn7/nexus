@@ -47,8 +47,16 @@ export function WorkspaceClient({
       setCreateOpen(true);
       return;
     }
-    // Ask NEXUS globally: open a conversation in the most recent space
-    router.push(`/space/${spaces[0].id}?q=${encodeURIComponent(prompt)}`);
+    // Ask NEXUS globally: use the Space with the most material, in Research mode
+    // so it reads your sources AND researches the live web — then answers immediately.
+    const best =
+      [...spaces].sort(
+        (a, b) =>
+          Number(b.source_count ?? 0) - Number(a.source_count ?? 0)
+      )[0];
+    router.push(
+      `/space/${best.id}?tab=overview&mode=research&q=${encodeURIComponent(prompt)}`
+    );
   }
 
   const firstName = userName.split(" ")[0];

@@ -27,7 +27,7 @@ const MODES: { key: AiMode; label: string; icon: typeof Zap }[] = [
 
 /** Parsed SSE event from the chat API */
 type ChatEvent =
-  | { type: "meta"; conversationId?: string; mode?: string; provider?: string | null }
+  | { type: "meta"; conversationId?: string; mode?: string; provider?: string | null; web?: boolean }
   | { type: "delta"; content: string }
   | { type: "done" }
   | { type: "complete" }
@@ -37,6 +37,7 @@ export function ChatView({
   spaceId,
   conversationId,
   initialMessages,
+  initialMode,
   probePrompt,
   onConversationCreated,
   onPromptConsumed,
@@ -46,16 +47,21 @@ export function ChatView({
   spaceId: string;
   conversationId: string | null;
   initialMessages?: AiMessage[];
+  initialMode?: AiMode | null;
   probePrompt?: string | null;
   onConversationCreated?: (id: string) => void;
   onConversationChanged?: (id: string) => void;
   onPromptConsumed?: () => void;
   compact?: boolean;
 }) {
-  const [mode, setMode] = useState<AiMode>("quick");
+  const [mode, setMode] = useState<AiMode>(initialMode ?? "quick");
   const [messages, setMessages] = useState<AiMessage[]>(initialMessages ?? []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiStatus, setAiStatus] = useState<{ provider: string | null; web: boolean }>({
+    provider: null,
+    web: false,
+  });
   const bottomRef = useRef<HTMLDivElement>(null);
   const [lastContext, setLastContext] = useState<AiMessage["context"] | null>(null);
   const remainingProbe = probePrompt ?? null;
@@ -74,7 +80,7 @@ export function ChatView({
     if (remainingProbe && !probeUsed.current) {
       probeUsed.current = true;
       onPromptConsumed?.();
-      const t = setTimeout(() => submit(remainingProbe), 350);
+      const t = setTimeout(() => submit(remainingProbe, initialMode ?? undefined), 350);
       return () => clearTimeout(t);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -140,12 +146,10 @@ export function ChatView({
           try {
             const ev = JSON.parse(part.slice(5).trim()) as ChatEvent;
             if (ev.type === "meta") {
+              setAiStatus({ provider: ev.provider ?? null, web: Boolean(ev.web) });
               if (ev.conversationId && ev.conversationId !== conversationId) {
                 onConversationCreated?.(ev.conversationId);
                 onConversationChanged?.(ev.conversationId);
-              }
-              if (ev.provider == null) {
-                // retrieval-only mode; still fine
               }
             } else if (ev.type === "delta") {
               updateLast(ev.content);
@@ -189,6 +193,19 @@ export function ChatView({
             </button>
           );
         })}
+        <span className="ml-auto flex items-center gap-1 text-[10px] text-(--muted-foreground)/70">
+          {aiStatus.provider && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-(--glow-cyan)/25 bg-(--glow-cyan)/8 px-2 py-0.5 font-medium text-(--muted-foreground)">
+              <span className="h-1 w-1 rounded-full bg-(--glow-cyan)" />
+              AI online
+            </span>
+          )}
+          {aiStatus.web && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-(--glow-violet)/25 bg-(--glow-violet)/8 px-2 py-0.5 font-medium text-(--muted-foreground)">
+              ● Web research
+            </span>
+          )}
+        </span>
       </div>
 
       {/* Messages */}

@@ -2,25 +2,49 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, FileUp, Link2, Type, Upload, Loader2 } from "lucide-react";
+import { X, FileUp, Link2, Type, Youtube, Loader2 } from "lucide-react";
 import { NexusButton, GlowInput } from "@/components/nexus/ui";
 import { cn } from "@/lib/utils";
 
-type Kind = "pdf" | "text" | "url";
+type Kind = "pdf" | "text" | "url" | "youtube";
+
+type AddFile = { name: string; type: string; size: number };
 
 const STATUS_FLOW = ["UPLOADING", "PROCESSING", "INDEXING", "ANALYZING"];
+
+function isYouTubeUrl(url: string): boolean {
+  return /youtube\.com\/watch|youtube\.com\/shorts|youtu\.be\//i.test(url);
+}
+
+function isAllowedFile(f: AddFile): boolean {
+  const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
+  const allowedExt = new Set(["pdf", "txt", "md", "markdown", "csv"]);
+  const allowedMime = new Set([
+    "application/pdf",
+    "text/plain",
+    "text/markdown",
+    "text/csv",
+  ]);
+  return allowedExt.has(ext) || allowedMime.has(f.type.toLowerCase());
+}
 
 export function AddSourceOverlay({
   spaceId,
   onClose,
+  initialKind,
+  initialFile,
+  initialUrl,
 }: {
   spaceId: string;
   onClose: () => void;
+  initialKind?: Kind | null;
+  initialFile?: File | null;
+  initialUrl?: string | null;
 }) {
   const router = useRouter();
-  const [kind, setKind] = useState<Kind>("pdf");
-  const [file, setFile] = useState<File | null>(null);
-  const [url, setUrl] = useState("");
+  const [kind, setKind] = useState<Kind>(initialKind ?? "pdf");
+  const [file, setFile] = useState<File | null>(initialFile ?? null);
+  const [url, setUrl] = useState(initialUrl ?? "");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [busy, setBusy] = useState(false);
@@ -51,15 +75,20 @@ export function AddSourceOverlay({
     e.preventDefault();
     setError(null);
 
-    if (kind === "pdf" && !file) {
-      setError("Choose a PDF to upload.");
+    let finalKind = kind;
+    if (kind === "url" && isYouTubeUrl(url.trim())) {
+      finalKind = "youtube";
+    }
+
+    if ((finalKind === "pdf") && !file) {
+      setError("Choose a file to upload.");
       return;
     }
-    if (kind === "url" && !url.trim()) {
-      setError("Enter a URL.");
+    if ((finalKind === "url" || finalKind === "youtube") && !url.trim()) {
+      setError(finalKind === "youtube" ? "Paste a YouTube link." : "Enter a URL.");
       return;
     }
-    if (kind === "text" && (!content.trim() || !title.trim())) {
+    if (finalKind === "text" && (!content.trim() || !title.trim())) {
       setError("Add a title and some content.");
       return;
     }
@@ -69,10 +98,10 @@ export function AddSourceOverlay({
 
     const fd = new FormData();
     fd.append("spaceId", spaceId);
-    fd.append("kind", kind);
-    if (kind === "pdf") fd.append("file", file!);
-    if (kind === "url") fd.append("url", url.trim());
-    if (kind === "text") {
+    fd.append("kind", finalKind);
+    if (finalKind === "pdf") fd.append("file", file!);
+    if (finalKind === "url" || finalKind === "youtube") fd.append("url", url.trim());
+    if (finalKind === "text") {
       fd.append("title", title.trim());
       fd.append("content", content);
     }
@@ -114,14 +143,16 @@ export function AddSourceOverlay({
           Add a source
         </h2>
         <p className="mt-1 text-sm text-(--muted-foreground)">
-          NEXUS will read it and connect it to this Space.
+          Drop a file, pasted text, a webpage or a YouTube video — NEXUS reads it
+          and connects it to this Space.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           {/* Kind selector */}
-          <div className="grid grid-cols-3 gap-2">
-            <KindButton active={kind === "pdf"} icon={FileUp} label="PDF" onClick={() => setKind("pdf")} />
+          <div className="grid grid-cols-4 gap-2">
+            <KindButton active={kind === "pdf"} icon={FileUp} label="File" onClick={() => setKind("pdf")} />
             <KindButton active={kind === "url"} icon={Link2} label="Webpage" onClick={() => setKind("url")} />
+            <KindButton active={kind === "youtube"} icon={Youtube} label="YouTube" onClick={() => setKind("youtube")} />
             <KindButton active={kind === "text"} icon={Type} label="Text" onClick={() => setKind("text")} />
           </div>
 
@@ -134,8 +165,8 @@ export function AddSourceOverlay({
                 e.preventDefault();
                 const f = e.dataTransfer.files?.[0];
                 if (f) {
-                  if (f.type !== "application/pdf" && !f.name.endsWith(".pdf")) {
-                    setError("Only PDF files are supported.");
+                  if (!isAllowedFile(f)) {
+                    setError("Unsupported file type — use PDF, TXT, MD or CSV.");
                     return;
                   }
                   if (f.size > 10 * 1024 * 1024) {
@@ -155,34 +186,58 @@ export function AddSourceOverlay({
             >
               <FileUp size={22} className={file ? "text-(--primary)" : ""} />
               {file ? (
-                <span className="font-medium text-(--foreground)">{file.name}</span>
+                <span className="font-medium text-(--foreground)">
+                  {file.name} <span className="ml-1 text-[11px] text-(--muted-foreground)">{(file.size / 1024 / 1024).toFixed(1)} MB</span>
+                </span>
               ) : (
                 <span className="text-(--muted-foreground)">
-                  Drop a PDF here or click to browse
+                  Drop a file here (PDF, TXT, MD, CSV) or click to browse
                 </span>
               )}
               <input
                 ref={fileRef}
                 type="file"
-                accept=".pdf,application/pdf"
+                accept=".pdf,.txt,.md,.markdown,.csv,application/pdf,text/plain,text/markdown,text/csv"
                 className="hidden"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
-                  if (f) setFile(f);
+                  if (f) {
+                    if (!isAllowedFile(f)) {
+                      setError("Unsupported file type — use PDF, TXT, MD or CSV.");
+                      return;
+                    }
+                    setError(null);
+                    setFile(f);
+                  }
                 }}
               />
             </button>
           )}
 
-          {kind === "url" && (
-            <GlowInput
-              label="Webpage URL"
-              type="url"
-              placeholder="https://..."
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              autoFocus
-            />
+          {(kind === "url" || kind === "youtube") && (
+            <>
+              <GlowInput
+                label={kind === "youtube" ? "YouTube link" : "Webpage URL"}
+                type="url"
+                placeholder={
+                  kind === "youtube" ? "https://www.youtube.com/watch?v=..." : "https://..."
+                }
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                autoFocus
+              />
+              {kind === "url" && (
+                <p className="-mt-2 text-[11px] text-(--muted-foreground)">
+                  Tip: paste a YouTube link here anytime — NEXUS detects it automatically.
+                </p>
+              )}
+              {kind === "youtube" && (
+                <p className="-mt-2 text-[11px] text-(--muted-foreground)">
+                  NEXUS reads the video title + description; full transcripts are only
+                  available when YouTube exposes them.
+                </p>
+              )}
+            </>
           )}
 
           {kind === "text" && (
