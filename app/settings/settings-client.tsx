@@ -2,23 +2,33 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, LayoutGrid, Sparkles } from "lucide-react";
+import { LogOut, LayoutGrid, Sparkles, MessageCircle } from "lucide-react";
 import { Y2KBackground } from "@/components/nexus/y2k-background";
 import { NexusLogo, NexusButton } from "@/components/nexus/ui";
 import { useTheme } from "@/components/nexus/theme-provider";
 import { THEMES, type NexusThemeKey } from "@/lib/themes";
 import { updateSpaceTheme } from "@/app/workspace/actions";
-import { cn } from "@/lib/utils";
+import { timeAgo, cn } from "@/lib/utils";
 import type { Space } from "@/types";
+
+type FeedbackItem = {
+  id: string;
+  user_email: string | null;
+  content: string;
+  page: string | null;
+  created_at: string;
+};
 
 export function SettingsClient({
   userEmail,
   username,
   spaces,
+  feedback,
 }: {
   userEmail: string;
   username: string;
   spaces: Space[];
+  feedback: FeedbackItem[];
 }) {
   const router = useRouter();
   const { theme: appTheme, setTheme } = useTheme();
@@ -149,6 +159,41 @@ export function SettingsClient({
             </div>
           </section>
         )}
+
+        {/* Feedback inbox */}
+        <section className="mt-6 rounded-2xl glass-strong p-5">
+          <h2 className="flex items-center gap-2 font-display font-semibold text-(--foreground)">
+            <MessageCircle size={15} className="text-(--primary)" />
+            Feedback inbox
+          </h2>
+          <p className="mt-1 text-sm text-(--muted-foreground)">
+            What people send from the "Send feedback" button.
+          </p>
+          {feedback.length === 0 ? (
+            <p className="mt-4 rounded-xl border border-(--border) bg-(--background)/30 px-4 py-6 text-center text-sm text-(--muted-foreground)">
+              No feedback yet. Share NEXUS with someone and ask them to click
+              "Send feedback".
+            </p>
+          ) : (
+            <ul className="mt-4 space-y-3">
+              {feedback.map((f) => (
+                <li
+                  key={f.id}
+                  className="rounded-xl border border-(--border) bg-(--background)/30 p-3"
+                >
+                  <div className="flex items-center justify-between gap-2 text-[11px] text-(--muted-foreground)">
+                    <span className="truncate font-medium">
+                      {f.user_email ?? "Anonymous"}
+                      {f.page ? ` · ${f.page}` : ""}
+                    </span>
+                    <span className="shrink-0">{timeAgo(f.created_at)}</span>
+                  </div>
+                  <p className="mt-1.5 text-sm text-(--foreground)">{f.content}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
         {/* Account */}
         <section className="mt-6 rounded-2xl glass-strong p-5">

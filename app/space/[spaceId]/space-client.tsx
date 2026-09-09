@@ -6,6 +6,7 @@ import { Y2KBackground } from "@/components/nexus/y2k-background";
 import { NexusLogo } from "@/components/nexus/ui";
 import { CommandPalette } from "@/components/nexus/command-palette";
 import { ThemeSwitcher } from "@/components/nexus/theme-switcher";
+import { FeedbackButton } from "@/components/nexus/feedback-button";
 import { EditSpaceModal } from "@/components/nexus/edit-space-modal";
 import { getTheme } from "@/lib/themes";
 import { cn, timeAgo } from "@/lib/utils";
@@ -259,6 +260,7 @@ export function SpaceClient({
 
         <div className="border-t border-(--border)/60 p-3">
           <ThemeSwitcher />
+          <FeedbackButton className="w-full" />
         </div>
       </aside>
 
@@ -360,6 +362,7 @@ export function SpaceClient({
             </nav>
             <div className="border-t border-(--border)/60 p-3">
               <ThemeSwitcher />
+              <FeedbackButton className="w-full" />
             </div>
           </div>
         </>

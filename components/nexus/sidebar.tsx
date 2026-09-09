@@ -13,6 +13,7 @@ import {
   Search,
 } from "lucide-react";
 import { NexusLogo } from "./ui";
+import { FeedbackButton } from "./feedback-button";
 import type { Space } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -149,6 +150,7 @@ export function Sidebar({
           <Settings size={16} />
           Settings
         </Link>
+        <FeedbackButton className="w-full" />
         <button
           type="button"
           onClick={handleSignOut}

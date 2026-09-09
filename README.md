@@ -19,6 +19,8 @@ web research.
   material, visualized per Space and as an aggregate across all Spaces.
 - **Notes & sources** — classic capture surface alongside the AI layer.
 - **AI insights** — per-Space summaries of what you have and what is missing.
+- **Feedback inbox** — an in-app "Send feedback" control on every screen feeds a
+  Settings inbox so you always hear what users want.
 - **Auth & email verification** — Supabase Auth with custom SMTP, plus a resend-verification
   endpoint and friendly account flow.
 - **Rate limiting** — per-user, per-AI-feature budgets to keep costs sane.
@@ -105,6 +107,7 @@ app/
     sources      [id]|add        # Resource ingestion
     auth/resend logout           # Auth helpers
     conversations/[id]
+    feedback                     # Sends user feedback to the inbox
 components/nexus/                # Shared UI (sidebar, overlays, theming)
 lib/
   ai/                            # Provider resolution, search, rate limiting
@@ -117,9 +120,23 @@ supabase/scripts/reset_schema.sql# Database schema
 
 - `GET /api/ai/status` returns which AI capabilities are configured on the server
   (boolean only — no secrets).
+- `feedback` table: `id`, `user_id`, `user_email`, `content`, `page`, `created_at`.
+  Create it with the SQL below, run in the Supabase dashboard SQL editor.
 - Custom SMTP for auth emails is configured in Supabase (e.g. Gmail app password).
 - AI rate limits are in-memory per instance; they reset on redeploy and scale per
   server instance.
+
+```sql
+create table if not exists public.feedback (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  user_email text,
+  content text not null,
+  page text,
+  created_at timestamptz not null default now()
+);
+alter table public.feedback enable row level security;
+```
 
 ## License
 

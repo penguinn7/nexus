@@ -9,6 +9,7 @@ import { SpaceCard } from "@/components/nexus/space-card";
 import { CreateSpaceModal } from "@/components/nexus/create-space-modal";
 import { Y2KBackground } from "@/components/nexus/y2k-background";
 import { CommandPalette } from "@/components/nexus/command-palette";
+import { FeedbackButton } from "@/components/nexus/feedback-button";
 import type { SpaceWithStats, Stats } from "@/types";
 
 export function WorkspaceClient({
@@ -82,15 +83,18 @@ export function WorkspaceClient({
         <span className="truncate font-display text-sm font-bold tracking-[0.2em] chrome-text">
           NEXUS
         </span>
-        <button
-          type="button"
-          onClick={() => setCreateOpen(true)}
-          aria-label="New Space"
-          className="ml-auto flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-(--glow-violet) to-(--glow-blue) px-3 py-1.5 text-xs font-medium text-white shadow-[0_0_20px_hsl(var(--glow-violet)/0.35)] active:scale-95 cursor-pointer"
-        >
-          <Plus size={14} />
-          New Space
-        </button>
+        <div className="ml-auto flex items-center gap-1">
+          <FeedbackButton iconOnly />
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            aria-label="New Space"
+            className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-(--glow-violet) to-(--glow-blue) px-3 py-1.5 text-xs font-medium text-white shadow-[0_0_20px_hsl(var(--glow-violet)/0.35)] active:scale-95 cursor-pointer"
+          >
+            <Plus size={14} />
+            New Space
+          </button>
+        </div>
       </div>
 
       {/* ── MOBILE: drawer ────────────────────────────────── */}
