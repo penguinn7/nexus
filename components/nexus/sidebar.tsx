@@ -19,9 +19,11 @@ import { cn } from "@/lib/utils";
 export function Sidebar({
   spaces,
   onNewSpace,
+  drawer = false,
 }: {
   spaces: Space[];
   onNewSpace: () => void;
+  drawer?: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -45,7 +47,12 @@ export function Sidebar({
   const recentSpaces = spaces.slice(0, 5);
 
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col border-r border-(--border)/60 bg-(--card)/40 backdrop-blur-xl">
+    <aside
+    className={cn(
+      "h-full w-64 shrink-0 flex-col border-r border-(--border)/60 bg-(--card)/40 backdrop-blur-xl",
+      drawer ? "flex" : "hidden lg:flex"
+    )}
+  >
       {/* Logo */}
       <div className="flex items-center justify-between px-5 pb-4 pt-5">
         <Link href="/workspace" className="flex items-center gap-2">

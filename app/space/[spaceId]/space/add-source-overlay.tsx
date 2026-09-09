@@ -126,7 +126,7 @@ export function AddSourceOverlay({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={busy ? undefined : onClose} />
       <div className="relative w-full max-w-lg rounded-2xl glass-strong p-6 shadow-[0_0_80px_hsl(var(--glow-violet)/0.2)] animate-scale-in">
         <button
@@ -149,7 +149,7 @@ export function AddSourceOverlay({
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           {/* Kind selector */}
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <KindButton active={kind === "pdf"} icon={FileUp} label="File" onClick={() => setKind("pdf")} />
             <KindButton active={kind === "url"} icon={Link2} label="Webpage" onClick={() => setKind("url")} />
             <KindButton active={kind === "youtube"} icon={Youtube} label="YouTube" onClick={() => setKind("youtube")} />

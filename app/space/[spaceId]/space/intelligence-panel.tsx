@@ -21,9 +21,29 @@ export function IntelligencePanel({
   initialMode?: AiMode | null;
   onPromptConsumed?: () => void;
 }) {
-  const [open, setOpen] = useState(true);
+  // Desktop starts open; on mobile the panel is a full-screen sheet and
+  // starts closed so the Space content is visible first.
+  const [open, setOpen] = useState(false);
   const [liveConversationId, setLiveConversationId] = useState<string | null>(null);
   const [initialMessages, setInitialMessages] = useState<AiMessage[]>([]);
+
+  useEffect(() => {
+    if (window.innerWidth >= 768) setOpen(true);
+  }, []);
+
+  // Allow the space page's mobile top bar to open this sheet.
+  useEffect(() => {
+    function onOpen() {
+      setOpen(true);
+    }
+    window.addEventListener("nexus:open-ai", onOpen);
+    return () => window.removeEventListener("nexus:open-ai", onOpen);
+  }, []);
+
+  // A routed "Ask NEXUS" query must open the panel so the answer is visible.
+  useEffect(() => {
+    if (probePrompt) setOpen(true);
+  }, [probePrompt]);
 
   return (
     <>
@@ -32,7 +52,7 @@ export function IntelligencePanel({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-30 flex items-center gap-2 rounded-full bg-gradient-to-r from-(--glow-violet) to-(--glow-blue) px-4 py-3 text-sm font-medium text-white shadow-[0_0_30px_hsl(var(--glow-violet)/0.4)] transition-all hover:shadow-[0_0_40px_hsl(var(--glow-violet)/0.6)] active:scale-95 cursor-pointer"
+          className="fixed bottom-24 right-6 z-30 flex items-center gap-2 rounded-full bg-gradient-to-r from-(--glow-violet) to-(--glow-blue) px-4 py-3 text-sm font-medium text-white shadow-[0_0_30px_hsl(var(--glow-violet)/0.4)] transition-all hover:shadow-[0_0_40px_hsl(var(--glow-violet)/0.6)] active:scale-95 cursor-pointer md:bottom-6"
         >
           <Sparkles size={15} />
           Ask NEXUS
@@ -41,8 +61,7 @@ export function IntelligencePanel({
 
       <aside
         className={cn(
-          "relative z-10 flex h-full w-[360px] shrink-0 flex-col border-l border-(--border)/60 bg-(--card)/30 backdrop-blur-xl transition-all duration-300",
-          open ? "translate-x-0" : "translate-x-full"
+          "fixed inset-0 z-[60] flex h-full w-full flex-col bg-(--card)/95 backdrop-blur-xl md:relative md:inset-auto md:z-10 md:w-[360px] md:shrink-0 md:border-l md:border-(--border)/60 md:bg-(--card)/30"
         )}
         style={{ display: open ? "flex" : "none" }}
         aria-label="NEXUS intelligence panel"

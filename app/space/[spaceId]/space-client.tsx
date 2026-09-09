@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Pencil, Plus, Sparkles } from "lucide-react";
+import { Menu, Pencil, Plus, Sparkles, X } from "lucide-react";
 import { Y2KBackground } from "@/components/nexus/y2k-background";
 import { NexusLogo } from "@/components/nexus/ui";
 import { CommandPalette } from "@/components/nexus/command-palette";
@@ -84,6 +84,7 @@ export function SpaceClient({
   const [editOpen, setEditOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     null
   );
@@ -94,6 +95,10 @@ export function SpaceClient({
   function openAddSource(props?: { initialKind?: "pdf" | "text" | "url" | "youtube"; initialFile?: File | null; initialUrl?: string | null }) {
     setAddSourceProps(props ?? null);
     setAddSourceOpen(true);
+  }
+
+  function openAI() {
+    window.dispatchEvent(new CustomEvent("nexus:open-ai"));
   }
 
   // Global drag & drop: drop any file from anywhere to add it to this Space
@@ -183,7 +188,7 @@ export function SpaceClient({
   }, [initialAdd]);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen flex-col overflow-hidden md:flex-row">
       <Y2KBackground />
       {/* ambient Space-specific glow */}
       <div
@@ -194,8 +199,8 @@ export function SpaceClient({
         }}
       />
 
-      {/* ── LEFT: Space navigation ─────────────────────────── */}
-      <aside className="relative z-10 flex h-full w-56 shrink-0 flex-col border-r border-(--border)/60 bg-(--card)/30 backdrop-blur-xl">
+      {/* ── LEFT: Space navigation (desktop) ──────────────── */}
+      <aside className="relative z-10 hidden h-full w-56 shrink-0 flex-col border-r border-(--border)/60 bg-(--card)/30 backdrop-blur-xl md:flex">
         <div className="flex items-center gap-2 px-5 pb-4 pt-5">
           <NexusLogo compact />
           <span className="font-display text-sm font-bold tracking-[0.2em] chrome-text">
@@ -256,6 +261,109 @@ export function SpaceClient({
           <ThemeSwitcher />
         </div>
       </aside>
+
+      {/* ── MOBILE: top bar ───────────────────────────────── */}
+      <div className="relative z-20 flex items-center gap-2 border-b border-(--border)/50 bg-(--card)/60 px-3 py-2.5 backdrop-blur-xl md:hidden">
+        <button
+          type="button"
+          onClick={() => setDrawerOpen(true)}
+          aria-label="Open menu"
+          className="rounded-lg p-1.5 text-(--muted-foreground) transition-colors hover:bg-(--card) hover:text-(--foreground) cursor-pointer"
+        >
+          <Menu size={18} />
+        </button>
+        <span className="truncate font-display text-sm font-semibold text-(--foreground)">
+          {space.name}
+        </span>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setEditOpen(true)}
+            aria-label="Edit Space"
+            className="rounded-lg p-1.5 text-(--muted-foreground) transition-colors hover:bg-(--card) hover:text-(--foreground) cursor-pointer"
+          >
+            <Pencil size={15} />
+          </button>
+          <button
+            type="button"
+            onClick={openAI}
+            className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-(--glow-violet) to-(--glow-blue) px-3 py-1.5 text-xs font-medium text-white shadow-[0_0_20px_hsl(var(--glow-violet)/0.35)] active:scale-95 cursor-pointer"
+          >
+            <Sparkles size={13} />
+            Ask NEXUS
+          </button>
+        </div>
+      </div>
+
+      {/* ── MOBILE: drawer nav ───────────────────────────── */}
+      {drawerOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+            onClick={() => setDrawerOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-(--border)/60 bg-(--card)/95 backdrop-blur-xl md:hidden animate-scale-in">
+            <div className="flex items-center justify-between px-5 pb-4 pt-5">
+              <div className="flex items-center gap-2">
+                <NexusLogo compact />
+                <span className="font-display text-sm font-bold tracking-[0.2em] chrome-text">
+                  NEXUS
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDrawerOpen(false)}
+                aria-label="Close menu"
+                className="rounded-lg p-1.5 text-(--muted-foreground) transition-colors hover:bg-(--card) hover:text-(--foreground) cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="px-5">
+              <p className="font-display text-[10px] uppercase tracking-[0.2em] text-(--muted-foreground)">
+                Space
+              </p>
+              <p className="mt-1 truncate text-sm font-semibold text-(--foreground)">
+                {space.name}
+              </p>
+              <p className="text-[11px] text-(--muted-foreground)">
+                {timeAgo(space.created_at)}
+              </p>
+            </div>
+            <nav className="mt-4 flex-1 space-y-0.5 overflow-y-auto px-3">
+              {TABS.map((t) => (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => {
+                    setActiveTab(t.key);
+                    setDrawerOpen(false);
+                  }}
+                  className={cn(
+                    "flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-colors cursor-pointer",
+                    activeTab === t.key
+                      ? "bg-(--primary)/12 text-(--foreground)"
+                      : "text-(--muted-foreground) hover:bg-(--card) hover:text-(--foreground)"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "w-4 text-center text-xs",
+                      activeTab === t.key ? "text-(--primary)" : ""
+                    )}
+                  >
+                    {t.icon}
+                  </span>
+                  {t.label}
+                </button>
+              ))}
+            </nav>
+            <div className="border-t border-(--border)/60 p-3">
+              <ThemeSwitcher />
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ── CENTER: main content ───────────────────────────── */}
       <main className="relative z-10 flex-1 overflow-y-auto">

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Network, Sparkles, Layers, ArrowRight } from "lucide-react";
+import { FileText, Menu, Network, Plus, Sparkles, Layers, X, ArrowRight } from "lucide-react";
 import { Sidebar } from "@/components/nexus/sidebar";
 import { AiInput } from "@/components/nexus/ai-input";
 import { SpaceCard } from "@/components/nexus/space-card";
@@ -23,6 +23,7 @@ export function WorkspaceClient({
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     function onOpen() {
@@ -62,9 +63,56 @@ export function WorkspaceClient({
   const firstName = userName.split(" ")[0];
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen flex-col overflow-hidden lg:flex-row">
       <Y2KBackground />
-      <Sidebar spaces={spaces} onNewSpace={() => setCreateOpen(true)} />
+      <div className="hidden lg:block">
+        <Sidebar spaces={spaces} onNewSpace={() => setCreateOpen(true)} />
+      </div>
+
+      {/* ── MOBILE: top bar ───────────────────────────────── */}
+      <div className="relative z-20 flex items-center gap-2 border-b border-(--border)/50 bg-(--card)/60 px-3 py-2.5 backdrop-blur-xl lg:hidden">
+        <button
+          type="button"
+          onClick={() => setDrawerOpen(true)}
+          aria-label="Open menu"
+          className="rounded-lg p-1.5 text-(--muted-foreground) transition-colors hover:bg-(--card) hover:text-(--foreground) cursor-pointer"
+        >
+          <Menu size={18} />
+        </button>
+        <span className="truncate font-display text-sm font-bold tracking-[0.2em] chrome-text">
+          NEXUS
+        </span>
+        <button
+          type="button"
+          onClick={() => setCreateOpen(true)}
+          aria-label="New Space"
+          className="ml-auto flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-(--glow-violet) to-(--glow-blue) px-3 py-1.5 text-xs font-medium text-white shadow-[0_0_20px_hsl(var(--glow-violet)/0.35)] active:scale-95 cursor-pointer"
+        >
+          <Plus size={14} />
+          New Space
+        </button>
+      </div>
+
+      {/* ── MOBILE: drawer ────────────────────────────────── */}
+      {drawerOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+            onClick={() => setDrawerOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 z-50 w-72 lg:hidden animate-scale-in">
+            <Sidebar drawer spaces={spaces} onNewSpace={() => { setDrawerOpen(false); setCreateOpen(true); }} />
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Close menu"
+              className="absolute right-2 top-3 z-10 rounded-lg p-1.5 text-(--muted-foreground) hover:text-(--foreground) cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </>
+      )}
 
       <main className="relative z-10 flex-1 overflow-y-auto px-6 py-8 md:px-10">
         {/* Hero */}
