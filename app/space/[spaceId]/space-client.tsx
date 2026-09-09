@@ -54,6 +54,7 @@ export function SpaceClient({
   connections,
   initialTab,
   initialQuery,
+  initialMode,
   initialAdd,
 }: {
   space: Space;
