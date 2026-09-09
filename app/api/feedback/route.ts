@@ -10,41 +10,53 @@ export const runtime = "nodejs";
  * the server after the user is authenticated).
  */
 export async function POST(req: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Sign in to send feedback." }, { status: 401 });
-  }
-
-  let body: { content?: unknown; page?: unknown };
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid request." }, { status: 400 });
-  }
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Sign in to send feedback." }, { status: 401 });
+    }
 
-  const content = typeof body.content === "string" ? body.content.trim() : "";
-  if (content.length < 3 || content.length > 2000) {
-    return NextResponse.json(
-      { error: "Feedback must be between 3 and 2000 characters." },
-      { status: 400 }
-    );
-  }
-  const page = typeof body.page === "string" ? body.page.slice(0, 300) : null;
+    let body: { content?: unknown; page?: unknown };
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    }
 
-  const admin = createServiceClient();
-  const { error } = await admin.from("feedback").insert({
-    user_id: user.id,
-    user_email: user.email ?? null,
-    content,
-    page,
-  });
-  if (error) {
-    console.error("feedback insert error:", error.message);
-    return NextResponse.json({ error: "Could not save feedback." }, { status: 500 });
-  }
+    const content = typeof body.content === "string" ? body.content.trim() : "";
+    if (content.length < 3 || content.length > 2000) {
+      return NextResponse.json(
+        { error: "Feedback must be between 3 and 2000 characters." },
+        { status: 400 }
+      );
+    }
+    const page = typeof body.page === "string" ? body.page.slice(0, 300) : null;
 
-  return NextResponse.json({ ok: true });
+    const admin = createServiceClient();
+    const { error } = await admin.from("feedback").insert({
+      user_id: user.id,
+      user_email: user.email ?? null,
+      content,
+      page,
+    });
+    if (error) {
+      console.error("feedback insert error:", error.message);
+      return NextResponse.json(
+        { error: `Feedback failed: ${error.message}` },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("feedback route error:", err);
+    const message =
+      err instanceof Error && err.message
+        ? `Feedback failed: ${err.message}`
+        : "Could not save feedback.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
