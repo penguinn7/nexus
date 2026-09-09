@@ -32,7 +32,13 @@ export function FeedbackButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: content.trim(), page: window.location.pathname }),
       });
-      const data = await res.json();
+      const raw = await res.text();
+      let data: { error?: string } = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        data = {};
+      }
       if (!res.ok) throw new Error(data.error ?? "Could not send feedback.");
       setSent(true);
     } catch (err) {
