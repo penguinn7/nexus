@@ -22,7 +22,7 @@ export function rateLimit(
   key: string,
   opts: { limit?: number; windowMs?: number } = {}
 ): RateLimitResult {
-  const limit = opts.limit ?? Number(process.env.AI_RATE_LIMIT_PER_HOUR) || 40;
+  const limit = opts.limit ?? (Number(process.env.AI_RATE_LIMIT_PER_HOUR) || 40);
   const windowMs = opts.windowMs ?? HOUR_MS;
 
   const now = Date.now();
