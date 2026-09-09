@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { resolveAIProvider } from "@/lib/ai/provider";
 import { extractConcepts } from "@/lib/ai/pipeline";
+import { rateLimit } from "@/lib/ai/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -12,6 +13,14 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
+
+  const quota = rateLimit(`ai:insights:${user.id}`, { limit: 10 });
+  if (!quota.ok) {
+    return NextResponse.json(
+      { error: "Too many insight requests this hour. Try again shortly." },
+      { status: 429 }
+    );
   }
 
   let body: { spaceId?: string };

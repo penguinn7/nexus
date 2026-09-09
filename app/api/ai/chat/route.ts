@@ -4,6 +4,7 @@ import { retrieveForQuestion, buildContext } from "@/lib/ai/retrieval";
 import { resolveAIProvider } from "@/lib/ai/provider";
 import { extractConcepts } from "@/lib/ai/pipeline";
 import { webSearch, buildWebContext, webResearchEnabled } from "@/lib/ai/search";
+import { rateLimit } from "@/lib/ai/rate-limit";
 import type { AiMode, RetrievalContext, ChunkRef, SourceRef, ConceptRef } from "@/types";
 import type { WebResult } from "@/lib/ai/search";
 
@@ -27,6 +28,16 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
+
+  const quota = rateLimit(`ai:chat:${user.id}`);
+  if (!quota.ok) {
+    return NextResponse.json(
+      {
+        error: `You've used this hour's AI allowance. Try again in ${Math.ceil(quota.retryAfterSeconds / 60)} min.`,
+      },
+      { status: 429 }
+    );
   }
 
   let body: { spaceId?: string; question?: string; mode?: string; conversationId?: string };

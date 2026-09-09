@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { retrieveForQuestion, buildContext } from "@/lib/ai/retrieval";
 import { resolveAIProvider } from "@/lib/ai/provider";
+import { rateLimit } from "@/lib/ai/rate-limit";
 
 type NoteAction =
   | "summarize"
@@ -38,6 +39,14 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
+
+  const quota = rateLimit(`ai:note:${user.id}`, { limit: 20 });
+  if (!quota.ok) {
+    return NextResponse.json(
+      { error: "Too many AI note actions this hour. Try again shortly." },
+      { status: 429 }
+    );
   }
 
   let body: { spaceId?: string; noteId?: string; action?: string };
