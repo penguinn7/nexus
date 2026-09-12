@@ -9,6 +9,7 @@ import { SceneCut } from '@/components/SceneCut';
 import { SceneSour } from '@/components/SceneSour';
 import { SceneStillLife } from '@/components/SceneStillLife';
 import { SceneFinale } from '@/components/SceneFinale';
+import { SceneNexus } from '@/components/SceneNexus';
 
 export default function Home() {
   return (
@@ -23,6 +24,7 @@ export default function Home() {
           <SceneSour />
           <SceneStillLife />
           <SceneFinale />
+          <SceneNexus />
         </main>
 
         {/* subtle portfolio entry — doesn't disturb the exhibit */}
