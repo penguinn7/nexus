@@ -50,14 +50,14 @@ export const site = {
       name: "LUMORA",
       sub: "A sculptural lamp product website",
       kind: "web · 3D experiment",
-      live: "https://github.com/penguinn7/LUMORA",
+      live: "https://lumora-eta-dusky.vercel.app",
       repo: "https://github.com/penguinn7/LUMORA",
     },
     dellplay: {
       name: "DELL / PLAY",
       sub: "An independent Y2K-inspired Dell showroom concept",
       kind: "web · visual direction",
-      live: "https://github.com/penguinn7/dell-y2k-showroom",
+      live: "https://dell-y2k-showroom.vercel.app",
       repo: "https://github.com/penguinn7/dell-y2k-showroom",
     },
     nexus: {

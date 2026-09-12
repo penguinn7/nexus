@@ -316,6 +316,17 @@
   color: #b7fa3c;
   font-style: normal;
 }
+.doc-type a {
+  color: #b7fa3c;
+  text-decoration: underline;
+  text-decoration-color: rgba(183, 250, 60, 0.35);
+  text-underline-offset: 3px;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+.doc-type a:hover {
+  color: #e9edf6;
+  text-decoration-color: rgba(183, 250, 60, 0.7);
+}
 
 /* clean print / save-as-PDF output for the application documents */
 @media print {

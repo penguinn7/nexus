@@ -7,16 +7,16 @@ import { Download } from "lucide-react";
 export const metadata: Metadata = {
   title: "Statement of Purpose — Sonakshi",
   description:
-    "A readable, honest statement of purpose: what happens when an idea leaves my head, and why I want to study it for four years at university.",
+    "The readable statement of purpose: using technology to understanding it, the gap year, and the projects that got me here.",
 };
 
 const TOC = [
-  { id: "the-question", label: "The question" },
-  { id: "from-tools-to-current", label: "Tools → current" },
-  { id: "the-argument-with-grades", label: "The grades argument" },
-  { id: "the-gap-year", label: "The gap year" },
-  { id: "why-university", label: "Why university" },
-  { id: "what-i-would-build", label: "What I would build" },
+  { id: "the-shift", label: "The shift" },
+  { id: "the-projects", label: "What I built" },
+  { id: "the-rule", label: "The rule" },
+  { id: "the-gap", label: "The gap" },
+  { id: "ai-grounded", label: "AI, grounded" },
+  { id: "an-honest-direction", label: "Honest direction" },
 ];
 
 export default function SopPage() {
@@ -26,124 +26,131 @@ export default function SopPage() {
     <>
       <PortfolioNav />
       <DocShell
-      kind="statement of purpose"
-      title="What happens when an idea leaves my head?"
-      subtitle="An honest essay in six movements — the same loop, as a story."
-      toc={TOC}
-    >
-      {/* download strip */}
-      <div className="mb-10 flex flex-wrap items-center gap-4 rounded-lg border border-pf-line/70 bg-pf-panel/50 p-5">
-        <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-pf-dim">
-          <Download size={12} className="text-pf-acid" /> the one-file version
-        </span>
-        {hasPdf ? (
-          <a
-            href={site.docs.sop!}
-            download
-            className="rounded-full border border-pf-acid/40 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-pf-acid transition-colors hover:bg-pf-acid/10"
-          >
-            download sop.pdf
+        kind="statement of purpose"
+        title="From using technology to understanding it"
+        subtitle="An honest essay — the shift, the builds, the gap year, and why I want to study Computer Science properly."
+        toc={TOC}
+      >
+        {/* download strip */}
+        <div className="mb-10 flex flex-wrap items-center gap-4 rounded-lg border border-pf-line/70 bg-pf-panel/50 p-5">
+          <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-pf-dim">
+            <Download size={12} className="text-pf-acid" /> the one-file version
+          </span>
+          {hasPdf ? (
+            <a
+              href={site.docs.sop!}
+              download
+              className="rounded-full border border-pf-acid/40 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-pf-acid transition-colors hover:bg-pf-acid/10"
+            >
+              download sop.pdf
+            </a>
+          ) : (
+            <span className="font-mono text-[11px] text-pf-faint">no separate file needed — use the print / save-as-pdf button above</span>
+          )}
+        </div>
+
+        <SectionHead id="the-shift" n="01" label="The shift" />
+
+        <p>
+          I want to study Computer Science because I have reached a point where I do not just want to use technology
+          anymore; I want to understand how it works and learn how to build with it properly. My strongest interest is
+          Artificial Intelligence, but that interest keeps pulling me outward — into programming, software, and
+          problem-solving more generally.
+        </p>
+        <p>
+          I did not start with a clean plan. My interest grew out of trying to make things. I taught myself to code and
+          began experimenting with web development, and I found that I enjoyed the specific act of taking an idea that
+          exists only inside my head and turning it into something a person could open and actually use. Building, I
+          learned quickly, is much more than knowing a language. There are problems at every stage, and quite often I
+          did not know how to solve them the first time I met them.
+        </p>
+        <p className="doc-lead">When something broke, I searched, read documentation, figured out what I was doing wrong, tried another approach, and sometimes started part of the project over.</p>
+        <p>
+          Things that looked simple turned into far bigger problems than I expected. That did not push me away — it made
+          me more curious about what was happening underneath the interface.
+        </p>
+
+        <SectionHead id="the-projects" n="02" label="What I built" />
+
+        <p>
+          I have tried to put this into practice with projects of my own. I built a Dell laptop showroom as an
+          interactive product website — you can open it at{" "}
+          <a href="https://dell-y2k-showroom.vercel.app" target="_blank" rel="noreferrer">
+            dell-y2k-showroom.vercel.app
+          </a>{" "}
+          — and later LUMORA, a site for a sculptural lamp at{" "}
+          <a href="https://lumora-eta-dusky.vercel.app" target="_blank" rel="noreferrer">
+            lumora-eta-dusky.vercel.app
           </a>
-        ) : (
-          <span className="font-mono text-[11px] text-pf-faint">no separate file needed — use the print / save-as-pdf button above</span>
-        )}
-      </div>
-
-      <div id="the-question">
-        <SectionHead id="the-question" n="01" label="The question that started it" />
-        <p className="doc-lead">When I was fifteen, my school phone wouldn't charge.</p>
-        <p>
-          It should have been the end of the story. Instead it became the beginning of this one. I wanted to know
-          what was happening inside — not the repair-shop answer, but the real one. Why does a cable make power go
-          one way and not the other? What is the streak of light that leaves my phone and enters a charger? I asked
-          the only person in my town who knew, and when he shrugged, the question stayed unofficial in my head:
+          . Neither was an assignment. I built them because I wanted to see whether I could take an idea, learn the
+          tools it needed, and turn it into something that actually worked. That meant teaching myself technologies I
+          was not comfortable with, facing errors I did not initially understand, and changing my approach when
+          something was not working.
         </p>
-        <blockquote>What happens when an idea leaves my head?</blockquote>
         <p>
-          That sentence has followed me from failing phones to failing builds to this application. It has no finished
-          answer yet. This essay is the most honest version I can give you of the answer so far.
+          I also learned that a project being technically functional is not the same as it being right. I started
+          paying attention to how a person would actually experience what I had built: how it looked, how it moved, how
+          it behaved on different screens, and whether the idea made sense as a product rather than only as code.
         </p>
-      </div>
 
-      <SectionHead id="from-tools-to-current" n="02" label="From tools to current" />
-      <p className="doc-lead">Growing up in the mountains, the internet was a small, expensive thing I had to ration.</p>
-      <p>
-        A limited data plan was my only door to the world. Every search cost something, so I became a researcher
-        out of necessity — reading one article until it answered three questions. That habit gave me something
-        rarer than a fast connection: patience for depth.
-      </p>
-      <p>
-        My love of electronics started the same way. A dead iPod, a printer that shredded paper, a speaker that
-        wheezed. I took them apart with a toolkit I didn't fully understand, and slowly learned that what I was
-        really doing was tracing the physical path of electricity — where it entered, where it pooled, where it
-        refused to go. Years before I wrote a line of code, I learned to read a system by taking it apart and
-        putting it back together. The computer science I now want to study is the same instinct, one level up.
-      </p>
-      <p>
-        The web caught next. I taught myself design and front-end development with that same rationed-internet
-        patience, and began building things simply because I was curious what they would look like finished.
-      </p>
+        <SectionHead id="the-rule" n="03" label="The rule" />
 
-      <SectionHead id="the-argument-with-grades" n="03" label="The argument I had with my own grades" />
-      <p className="doc-lead">I will not hide this from you, because it is the truest thing about me.</p>
-      <p>
-        My academic record dips. My final school year ended at 70%, sliding from 88% in class 10 — and I know how
-        that reads on an application. It reads: distracted. What actually happened is more precise: the moment the
-        world asked eighteen-year-olds to name a single future, every other question I had been quietly collecting
-        came forward demanding attention. My grades didn't drop because I stopped caring; they dropped because I
-        started aiming my curiosity at things in its own path — and doing it without the discipline of structure.
-      </p>
-      <p>
-        I think this matters to you in a specific way. The dip taught me something no straight line ever could:
-        <em> the cost of operating unsupervised, and the repair of it.</em> I chose the repair myself, on my own
-        time, with no one forcing it — which is the reason the next section exists.
-      </p>
+        <p>
+          This way of learning has become central to how I work. I understand something much better when I have a
+          reason to use it. If I want to build something and discover a part I do not know yet, that gap becomes a
+          reason to learn it. I have gotten comfortable with being a beginner and working through a problem step by
+          step. At the same time, I know the limits of teaching myself: I can learn tools and build projects, but I
+          want a much stronger foundation in mathematics, algorithms, computer systems, and the ideas that actually
+          make modern AI possible.
+        </p>
 
-      <SectionHead id="the-gap-year" n="04" label="The gap year that got built" />
-      <p className="doc-lead">Two doors opened after school. I picked the one with no assigned seating.</p>
-      <p>
-        Re-sitting my final exams would have meant memorizing better the second time — the same test, the same
-        lens. Instead I took a gap year and treated it as a laboratory. I restored a dead iPod and a speaker.
-        I disassembled and rebuilt my printer. I designed and shipped two web projects with my own hands, and I
-        built <strong>NEXUS</strong> — an AI-powered second brain I use every single day — from database schema to
-        interface to graph. I wrote, I shipped, I broke, I wrote again.
-      </p>
-      <p>
-        None of it was assigned. All of it was chosen. That is the difference I want a university to see: not a
-        student who was told what to do and did it, but one who kept building when no one was looking, and chose
-        this field on purpose.
-      </p>
+        <SectionHead id="the-gap" n="04" label="The gap" />
 
-      <SectionHead id="why-university" n="05" label="Why a university now" />
-      <p className="doc-lead">I've hit the ceiling of a self-taught gap year — and that's the happy part.</p>
-      <p>
-        Left alone, my loop works. But the questions I'm now chasing live beyond my reach: how neural networks
-        actually generalize, how systems stay trustworthy under scale, what math is hiding underneath the tools I
-        use daily. I can feel the boundaries of my self-built knowledge, and it's time to stand on a real
-        foundation.
-      </p>
-      <p>
-        What I bring in exchange is unreproducible at a desk in a lecture hall: a curiosity that has been tested
-        by failure and didn't quit; discipline chosen, not imposed; and the habit of shipping real things. I do
-        not want to be lectured into being curious — I want to be given the tools to make my curiosity rigorous.
-      </p>
+        <p>
+          My academic path has made me realistic about that goal. My marks slipped during the final years of school,
+          and I know there are gaps I am responsible for closing. Instead of hiding that, I am using my gap year to
+          repair my preparation and build real discipline. My aim is not to reach a particular score or get into a
+          particular college. It is to arrive at the next stage of education ready enough to actually use it.
+        </p>
 
-      <SectionHead id="what-i-would-build" n="06" label="What I would build with your four years" />
-      <p className="doc-lead">Given a foundation, a lab, and mentors, here is the shape of it.</p>
-      <p>
-        First, I would ground the loop: the "whys" behind the seven stages I named — inference, learning theory,
-        systems. Then I would run it out loud: joining research, building things that fail in public, working with
-        teammates who argue better than I do. And at the end, I would enter the applied world — not to escape, but
-        because the bridge between my ideas and reality is exactly the interface between the classroom and the
-        world, which is the place I want to spend a career.
-      </p>
-      <p>
-        I don't know the complete answer to my question yet. But I know my first seven steps by heart, I've lived
-        every one of them, and I am ready to trade my loop for something that moves faster than curiosity alone
-        can.
-      </p>
-      <blockquote>An idea left my head five years ago and became this application. Imagine what happens when I give it a system to live in.</blockquote>
-    </DocShell>
+        <SectionHead id="ai-grounded" n="05" label="AI, grounded" />
+
+        <p>
+          I have already had one taste of combining AI with software a real person opens. I built an AI-powered second
+          brain — an app that organizes my notes, sources, and half-formed ideas and answers me back — and I use it
+          every day. It showed me what I want more of: AI living inside software instead of staying at a demo's
+          distance.
+        </p>
+        <p>
+          If I am given the opportunity to study Computer Science, my first priority would be to build that foundation
+          properly. I want to take mathematics and core computer science seriously, rather than rushing toward whatever
+          AI topic happens to be popular. Alongside my coursework, I would keep building, and I would want my projects
+          to become more technically substantial as I go. I would like to work with other students, join technical
+          communities, take part in competitions where appropriate, and look for chances to explore research once I
+          know enough to contribute meaningfully.
+        </p>
+
+        <SectionHead id="an-honest-direction" n="06" label="Honest direction" />
+
+        <p>
+          I also want to use those years to find out what, specifically, I want to pursue within AI. Right now I know I
+          enjoy coding, building products, and exploring AI — but I do not want to invent a research ambition just
+          because it would sound impressive in an application. I would rather explore during my undergraduate years,
+          understand what actually interests me most, and choose a direction with a far better picture of the field.
+        </p>
+        <p>
+          In the longer term, I want to be someone who does more than use existing tools — someone who can create
+          technology people genuinely find useful. I want to keep experimenting with ideas, but I also want the
+          technical depth to know when an idea is good, how to build it properly, and what its limits are.
+        </p>
+        <p>
+          I am applying because I want to take what I have started doing on my own and develop it much further. I know
+          I still have a lot to learn; that is not a weakness in this application, it is the reason I want to study
+          this field in depth. I intend to use my undergraduate years to learn seriously, build consistently, explore
+          AI beyond the surface, and gradually turn an honest interest in coding into the ability to create things that
+          are genuinely useful.
+        </p>
+      </DocShell>
     </>
   );
 }
