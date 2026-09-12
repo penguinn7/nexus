@@ -1,0 +1,72 @@
+<svg width="600" height="600" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="body" cx="38%" cy="32%" r="55%">
+      <stop offset="0%" stop-color="#fef9c3"/>
+      <stop offset="20%" stop-color="#fde68a"/>
+      <stop offset="45%" stop-color="#facc15"/>
+      <stop offset="70%" stop-color="#eab308"/>
+      <stop offset="90%" stop-color="#ca8a04"/>
+      <stop offset="100%" stop-color="#a16207"/>
+    </radialGradient>
+    <radialGradient id="highlight" cx="28%" cy="26%" r="30%">
+      <stop offset="0%" stop-color="#fffbeb" stop-opacity="0.85"/>
+      <stop offset="60%" stop-color="#fef9c3" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="transparent" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="shadow" cx="68%" cy="72%" r="45%">
+      <stop offset="0%" stop-color="transparent" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#854d0e" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#713f12" stop-opacity="0.4"/>
+    </radialGradient>
+    <filter id="bump">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" stitchTiles="stitch" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0"/>
+      <feBlend in="SourceGraphic" in2="n" mode="overlay"/>
+    </filter>
+    <filter id="pores">
+      <feTurbulence type="turbulence" baseFrequency="0.06" numOctaves="2" result="p"/>
+      <feColorMatrix in="p" type="saturate" values="0"/>
+      <feComponentTransfer in="p">
+        <feFuncA type="table" tableValues="0 0.04 0.08 0.12 0.16 0.2 0.24"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="p" mode="multiply"/>
+    </filter>
+    <linearGradient id="stemGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#78350f"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Body -->
+  <ellipse cx="300" cy="320" rx="210" ry="230" fill="url(#body)" filter="url(#bump)"/>
+  <ellipse cx="300" cy="320" rx="210" ry="230" fill="url(#shadow)"/>
+  <ellipse cx="240" cy="190" rx="120" ry="100" fill="url(#highlight)"/>
+
+  <!-- Pore texture overlay -->
+  <g filter="url(#pores)" opacity="0.12">
+    <ellipse cx="260" cy="250" rx="4" ry="3" fill="#a16207"/>
+    <ellipse cx="340" cy="280" rx="3" ry="2.5" fill="#a16207"/>
+    <ellipse cx="240" cy="340" rx="3.5" ry="3" fill="#a16207"/>
+    <ellipse cx="370" cy="310" rx="2.5" ry="2" fill="#a16207"/>
+    <ellipse cx="220" cy="400" rx="3" ry="2.5" fill="#a16207"/>
+    <ellipse cx="390" cy="360" rx="2.5" ry="2" fill="#a16207"/>
+    <ellipse cx="280" cy="430" rx="3" ry="2" fill="#a16207"/>
+    <ellipse cx="330" cy="410" rx="3.5" ry="3" fill="#a16207"/>
+    <ellipse cx="200" cy="370" rx="2.5" ry="2" fill="#a16207"/>
+    <ellipse cx="380" cy="240" rx="3" ry="2.5" fill="#a16207"/>
+    <ellipse cx="290" cy="210" rx="2.5" ry="2" fill="#a16207"/>
+    <ellipse cx="410" cy="300" rx="2" ry="1.5" fill="#a16207"/>
+    <ellipse cx="230" cy="300" rx="3" ry="2.5" fill="#a16207"/>
+    <ellipse cx="360" cy="380" rx="2.5" ry="2" fill="#a16207"/>
+    <ellipse cx="310" cy="350" rx="2" ry="1.5" fill="#a16207"/>
+  </g>
+
+  <!-- Stem nub -->
+  <ellipse cx="300" cy="105" rx="28" ry="40" fill="url(#stemGrad)" opacity="0.85"/>
+  <ellipse cx="300" cy="105" rx="18" ry="28" fill="#92400e" opacity="0.5"/>
+  <ellipse cx="292" cy="95" rx="10" ry="15" fill="#fef3c7" opacity="0.35"/>
+
+  <!-- Bottom dimple -->
+  <ellipse cx="300" cy="540" rx="22" ry="18" fill="#713f12" opacity="0.5"/>
+  <ellipse cx="300" cy="540" rx="14" ry="10" fill="#a16207" opacity="0.3"/>
+</svg>

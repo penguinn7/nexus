@@ -165,6 +165,11 @@ export function SettingsClient({
           <h2 className="flex items-center gap-2 font-display font-semibold text-(--foreground)">
             <MessageCircle size={15} className="text-(--primary)" />
             Feedback inbox
+            {feedback.length > 0 && (
+              <span className="rounded-full border border-(--primary)/40 bg-(--primary)/10 px-2 py-0.5 text-[10px] font-medium text-(--primary)">
+                {feedback.length}
+              </span>
+            )}
           </h2>
           <p className="mt-1 text-sm text-(--muted-foreground)">
             What people send from the "Send feedback" button.

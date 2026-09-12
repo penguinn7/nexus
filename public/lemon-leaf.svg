@@ -1,0 +1,71 @@
+<svg width="300" height="500" viewBox="0 0 300 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#84cc16"/>
+      <stop offset="30%" stop-color="#65a30d"/>
+      <stop offset="60%" stop-color="#4d7c0f"/>
+      <stop offset="100%" stop-color="#365314"/>
+    </linearGradient>
+    <linearGradient id="leafHighlight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a3e635" stop-opacity="0.4"/>
+      <stop offset="50%" stop-color="transparent" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="leafVeins" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#365314" stop-opacity="0.3"/>
+      <stop offset="50%" stop-color="#365314" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#365314" stop-opacity="0.05"/>
+    </linearGradient>
+    <filter id="leafTexture">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" result="leafNoise"/>
+      <feColorMatrix in="leafNoise" type="saturate" values="0"/>
+      <feComponentTransfer in="leafNoise">
+        <feFuncA type="table" tableValues="0 0.02 0.04 0.06 0.08 0.1 0.12 0.14"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="leafNoise" mode="overlay"/>
+    </filter>
+  </defs>
+  
+  <path 
+    d="M150 20 
+       Q80 50 30 150 
+       Q10 280 50 380 
+       Q80 450 150 480 
+       Q220 450 250 380 
+       Q290 280 270 150 
+       Q220 50 150 20 Z" 
+    fill="url(#leafGradient)" 
+    filter="url(#leafTexture)"
+  />
+  
+  <path 
+    d="M150 20 
+       Q80 50 30 150 
+       Q10 280 50 380 
+       Q80 450 150 480 
+       Q220 450 250 380 
+       Q290 280 270 150 
+       Q220 50 150 20 Z" 
+    fill="url(#leafHighlight)" 
+  />
+  
+  <g stroke="url(#leafVeins)" stroke-width="1.5" fill="none" opacity="0.4">
+    <path d="M150 30 Q145 100 140 200 Q135 300 140 400 Q145 450 150 470"/>
+    <path d="M150 50 Q100 120 60 220 Q40 280 45 350"/>
+    <path d="M150 50 Q200 120 240 220 Q260 280 255 350"/>
+    <path d="M150 100 Q110 180 70 280 Q50 330 55 380"/>
+    <path d="M150 100 Q190 180 230 280 Q250 330 245 380"/>
+    <path d="M150 150 Q120 220 90 320 Q75 360 80 400"/>
+    <path d="M150 150 Q180 220 210 320 Q225 360 220 400"/>
+    <path d="M150 200 Q125 260 100 340 Q90 375 95 390"/>
+    <path d="M150 200 Q175 260 200 340 Q210 375 205 390"/>
+    <path d="M150 250 Q130 300 110 360 Q100 385 105 395"/>
+    <path d="M150 250 Q170 300 190 360 Q200 385 195 395"/>
+  </g>
+  
+  <path 
+    d="M150 20 Q135 100 130 180 Q125 260 128 320 Q130 380 140 420" 
+    stroke="#365314" stroke-width="2" fill="none" opacity="0.5"
+  />
+  
+  <ellipse cx="150" cy="470" rx="8" ry="4" fill="#365314" opacity="0.6"/>
+</svg>

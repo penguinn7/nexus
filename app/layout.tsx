@@ -1,40 +1,65 @@
-import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
-import { ThemeProvider } from "@/components/nexus/theme-provider";
-import "./globals.css";
+import type { Metadata, Viewport } from 'next';
+import { Inter, Playfair_Display, JetBrains_Mono, Unbounded } from 'next/font/google';
+import './globals.css';
 
 const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+  preload: true,
 });
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space-grotesk",
-  display: "swap",
+const unbounded = Unbounded({
+  subsets: ['latin'],
+  variable: '--font-unbounded',
+  display: 'swap',
+  weight: ['400', '500', '600', '700', '800', '900'],
+  preload: true,
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+  weight: ['400', '500', '600', '700', '800', '900'],
+  preload: true,
+});
+
+const jetbrains = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains',
+  display: 'swap',
+  preload: false,
 });
 
 export const metadata: Metadata = {
-  title: "NEXUS — Your brain, but connected.",
-  description:
-    "Your sources, thoughts, research and AI living inside one intelligent environment. A second brain that connects everything you know.",
+  title: 'LIMÓN — A Citrus Experience',
+  description: 'An immersive editorial journey into the world of the lemon. Sophisticated, surreal, cinematic.',
   openGraph: {
-    title: "NEXUS",
-    description: "Your brain, but connected.",
-    type: "website",
+    title: 'LIMÓN',
+    description: 'An immersive editorial journey into the world of the lemon.',
+    type: 'website',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#fefce8',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} ${spaceGrotesk.variable} min-h-screen antialiased`}
-      >
-        <ThemeProvider>{children}</ThemeProvider>
+    <html lang="en" className={`${inter.variable} ${playfair.variable} ${jetbrains.variable} ${unbounded.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
+      <body className="min-h-screen antialiased">
+        {children}
       </body>
     </html>
   );

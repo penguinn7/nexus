@@ -23,7 +23,7 @@ export default async function SettingsPage() {
     .from("feedback")
     .select("id, user_email, content, page, created_at")
     .order("created_at", { ascending: false })
-    .limit(20);
+    .limit(100);
 
   return (
     <SettingsClient
